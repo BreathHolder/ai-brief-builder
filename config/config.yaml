@@ -1,0 +1,111 @@
+# Pipeline settings. Secrets do NOT go here; they come from .env.
+
+episode:
+  title: "Weekly AI Briefing"
+  target_minutes: 30
+  target_words: 4500          # ~150 spoken words per minute
+  stories_min: 6
+  stories_max: 8
+  max_stories_per_vendor: 2
+  open_with_date: true        # first words of every episode are the date
+  audience: "a technology leader responsible for an organization's AI platforms"  # who the show is written for
+  hosts:
+    lead: Alex                # lead narrator: carries the episode
+    counterpoint: Jordan      # analyst: pushback and the case against
+
+ingest:
+  window_days: 7
+  request_timeout_s: 30
+  request_delay_s: 1.0        # politeness pause between requests to the same host
+  max_retries: 3
+  max_text_chars: 40000       # full-text cap per article
+  user_agent: "Mozilla/5.0 (X11; Linux x86_64) ai-briefing/0.2 (personal news digest)"
+
+normalise:
+  translate_non_english: true
+  translation_max_chars: 12000
+  title_similarity: 0.88      # near-duplicate threshold on titles (0-1)
+  text_similarity: 0.80       # near-duplicate threshold on body text (0-1)
+
+health:
+  silent_runs_warning: 2      # warn when a source returns nothing this many runs in a row
+
+curation:
+  # Rubric weights for the LLM importance judge (must sum to 1.0).
+  # The environment profile is NEVER an input to curation.
+  weights:
+    impact: 0.40
+    novelty: 0.25
+    breadth: 0.20
+    signal: 0.15
+  min_story_score: 5.0        # below this a story only fills up to stories_min
+  min_research_score: null    # set a number (e.g. 6.0) to reserve a slot for the best research story
+  item_preview_chars: 300     # text shown per item when clustering and scoring
+
+synthesis:
+  story_source_chars: 14000   # source text budget per story for the analysis pass
+  intro_words: 300
+  outro_words: 450
+  factcheck: true             # check each story segment against its sources before audio
+
+llm:
+  tasks:
+    translation: {provider: anthropic, model: claude-haiku-4-5-20251001}
+    curation:    {provider: anthropic, model: claude-sonnet-5-5}
+    synthesis:   {provider: anthropic, model: claude-sonnet-5-5}
+    factcheck:   {provider: anthropic, model: claude-haiku-4-5-20251001}
+  # Used automatically if the primary provider errors. Remove to disable.
+  # Check this model name against your OpenAI account's current models.
+  fallback: {provider: openai, model: gpt-4.1-mini}
+  # USD per million tokens [input, output], for cost tracking.
+  # Anthropic list prices as of October 2026; add any model you route to.
+  prices:
+    claude-sonnet-5-5: [2.00, 10.00]
+    claude-haiku-4-5-20251001: [1.00, 5.00]
+
+audio:
+  provider: openai            # openai today; the provider layer is pluggable for a later switch
+  model: gpt-4o-mini-tts
+  sunset: 2027-01-06          # OpenAI shuts this model down then; show notes warn 30 days ahead
+  voices:                     # try alternatives with: briefing voice-sample --voices cedar,marin,ash,coral
+    lead: cedar
+    counterpoint: marin
+  style:                      # delivery instructions sent with every line, per role
+    lead: >-
+      Warm, confident podcast host. Natural conversational pace, clear diction,
+      light energy. Sounds like a knowledgeable colleague, not an announcer.
+    counterpoint: >-
+      Sharp, thoughtful analyst. Slightly drier and more measured than the host,
+      with a hint of skepticism when pushing back. Conversational, never theatrical.
+  pause_ms:
+    same_speaker: 250
+    speaker_change: 450
+    segment: 1100             # between intro, stories and outro
+  loudness_lufs: -16          # podcast loudness standard
+  bitrate: 128k
+  concurrency: 4              # parallel TTS requests
+  price_per_minute: 0.02      # USD, for the budget check; OpenAI estimates ~0.015, real-world runs higher
+  intro_sting: null           # optional path to an audio file played before the episode
+  outro_sting: null
+
+budget:
+  max_usd_per_episode: 3.00   # LLM + audio; audio isn't rendered if the projected total exceeds this
+
+feed:
+  enabled: true
+  # The address your phone uses to reach this machine. Use its LAN IP (give it a
+  # DHCP reservation on your router so it never changes); Android often can't
+  # resolve bare hostnames. BRIEFING_FEED_BASE_URL in .env overrides this.
+  base_url: "http://192.168.1.50:8080"
+  host: 0.0.0.0               # listen on all interfaces; your firewall/router keeps it on the LAN
+  port: 8080
+  keep_episodes: 12           # older episodes are removed from the feed and from disk
+  author: "AI Briefing"
+  description: >-
+    A weekly, opinionated two-host briefing on AI platforms: what happened,
+    why it matters, and whether to evaluate, pilot or ignore it.
+  cover_image: null           # optional path to a square JPG/PNG (1400x1400 or larger) shown in AntennaPod
+
+schedule:
+  # systemd OnCalendar expression, in this machine's local time zone.
+  on_calendar: "Mon *-*-* 05:00:00"

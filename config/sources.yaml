@@ -1,0 +1,103 @@
+# Sources and the feeds behind them. Run `briefing sources --probe` after
+# any change to confirm each feed responds and returns items.
+#
+# fetch_articles: false uses the feed's own text instead of fetching each
+# page. Set it for sites that block automated access (they return 403).
+#
+# title_strip: regexes removed from titles, for site suffixes like
+# "| Claude by Anthropic" that would otherwise be read aloud.
+#
+# feed kinds:
+#   rss              RSS or Atom (GitHub releases.atom works here too)
+#   hf_daily_papers  Hugging Face Daily Papers API, filtered by upvotes
+#   scrape           a listing page with no feed; article links are matched by
+#                    link_pattern (a regex on the URL path), then each article
+#                    is fetched for its text and date
+#
+# include_keywords narrows a BROAD vendor feed to its AI content (e.g. the
+# Red Hat blog also covers Kafka and RHEL). It scopes the source; it is not
+# the environment profile and has nothing to do with your stack.
+
+sources:
+  - id: hf-daily-papers
+    name: Hugging Face Daily Papers
+    vendor: huggingface
+    tier: curated_research
+    feeds:
+      - kind: hf_daily_papers
+        url: https://huggingface.co/api/daily_papers
+        min_upvotes: 10       # community traction as the trust signal
+        top_per_day: 5
+
+  - id: openai
+    name: OpenAI
+    vendor: openai
+    tier: first_party
+    feeds:
+      - kind: rss
+        url: https://openai.com/news/rss.xml
+        fetch_articles: false   # openai.com returns 403 to automated page fetches; the feed is allowed
+
+  - id: infoq-openai
+    name: InfoQ (OpenAI coverage)
+    vendor: openai            # counts toward the OpenAI per-episode story cap
+    tier: trusted_analysis
+    notes: Full-text OpenAI coverage, since openai.com blocks article fetches.
+    feeds:
+      - kind: rss
+        url: https://feed.infoq.com/OpenAI/news/
+
+  - id: anthropic
+    name: Anthropic
+    vendor: anthropic
+    tier: first_party
+    notes: No official RSS feed; listing pages are scraped.
+    feeds:
+      - kind: scrape
+        url: https://www.anthropic.com/news
+        link_pattern: '^/news/[a-z0-9-]+/?$'
+        title_strip: ['\s*[|\u2013-]\s*Anthropic$']
+      - kind: scrape
+        url: https://www.anthropic.com/engineering
+        link_pattern: '^/engineering/[a-z0-9-]+/?$'
+        title_strip: ['\s*[|\u2013-]\s*(Anthropic|Claude Code Docs)$']
+      - kind: scrape
+        url: https://claude.com/blog
+        link_pattern: '^/blog/[a-z0-9-]+/?$'
+        title_strip: ['\s*\|\s*Claude by Anthropic$']
+
+  - id: microsoft-ai
+    name: Microsoft AI / Azure AI Foundry
+    vendor: microsoft
+    tier: first_party
+    feeds:
+      - kind: rss
+        url: https://devblogs.microsoft.com/foundry/feed/
+      - kind: rss
+        url: https://azure.microsoft.com/en-us/blog/feed/
+        include_keywords: [AI, Foundry, OpenAI, Copilot, agent, model, LLM, GPT]
+
+  - id: redhat-openshift-ai
+    name: Red Hat OpenShift AI
+    vendor: redhat
+    tier: stack
+    feeds:
+      - kind: rss
+        url: https://www.redhat.com/en/rss/blog
+        include_keywords: [OpenShift AI, Red Hat AI, AI Inference, vLLM, llm-d, InstructLab, RHEL AI, model serving, inference]
+      - kind: rss
+        url: https://developers.redhat.com/blog/feed
+        include_keywords: [OpenShift AI, Red Hat AI, AI Inference, vLLM, llm-d, InstructLab, RHEL AI, model serving, inference]
+
+  - id: kong-ai-gateway
+    name: Kong AI Gateway
+    vendor: kong
+    tier: stack
+    feeds:
+      - kind: rss
+        url: https://github.com/Kong/kong/releases.atom
+        title_prefix: Kong Gateway
+      - kind: scrape
+        url: https://konghq.com/blog/tag/ai-gateway
+        link_pattern: '^/blog/(?!tag/|page/)[a-z-]+/[a-z0-9-]+/?$'
+        title_strip: ['\s*[|\u2013-]\s*Kong Inc\.?$']

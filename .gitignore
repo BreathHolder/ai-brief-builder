@@ -1,0 +1,30 @@
+# Secrets and personal configuration
+.env
+.env.*
+!.env.example
+config/environment.md
+
+# Run data: episodes, cache, logs
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# Tooling
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Editors and OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
