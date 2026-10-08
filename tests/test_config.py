@@ -28,3 +28,8 @@ def test_missing_profile_rejected(project):
     (project / "config" / "environment.md").unlink()
     with pytest.raises(ConfigError, match="environment profile"):
         load_config(project)
+
+
+def test_audience_env_override(project, monkeypatch):
+    monkeypatch.setenv("BRIEFING_AUDIENCE", "a test listener")
+    assert load_config(project).settings.episode.audience == "a test listener"

@@ -26,7 +26,7 @@ def project(tmp_path, monkeypatch):
     shutil.copytree(PROJECT_ROOT / "config", root / "config")
     (root / "config" / "environment.md").write_text(TEST_PROFILE)
     monkeypatch.setenv("BRIEFING_DATA_DIR", str(tmp_path / "data"))
-    for key in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "ELEVENLABS_API_KEY", "BRIEFING_FEED_BASE_URL"):
+    for key in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "ELEVENLABS_API_KEY", "BRIEFING_FEED_BASE_URL", "BRIEFING_AUDIENCE"):
         monkeypatch.delenv(key, raising=False)
     return root
 

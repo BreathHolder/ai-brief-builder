@@ -8,7 +8,7 @@ episode:
   stories_max: 8
   max_stories_per_vendor: 2
   open_with_date: true        # first words of every episode are the date
-  audience: "a technology leader responsible for an organization's AI platforms"  # who the show is written for
+  audience: "a technology leader responsible for an organization's AI platforms"  # who the show is written for; BRIEFING_AUDIENCE in .env overrides
   hosts:
     lead: Alex                # lead narrator: carries the episode
     counterpoint: Jordan      # analyst: pushback and the case against

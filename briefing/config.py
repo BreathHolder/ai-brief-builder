@@ -303,6 +303,8 @@ def load_config(root: Path | None = None) -> AppConfig:
             settings.feed = FeedConfig(**{**settings.feed.model_dump(), "base_url": base_url})
         except Exception as exc:
             raise ConfigError(f"BRIEFING_FEED_BASE_URL: {exc}") from exc
+    if audience := os.environ.get("BRIEFING_AUDIENCE", "").strip():
+        settings.episode.audience = audience
 
     profile_path = config_dir / "environment.md"
     if not profile_path.exists():

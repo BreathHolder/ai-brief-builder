@@ -37,7 +37,8 @@ cp config/environment.example.md config/environment.md   # describe your environ
 ```
 
 Set `episode.audience` in `config/config.yaml` to describe who the show is for
-(e.g. "the head of an ML platform team at a mid-size bank").
+(e.g. "the head of an ML platform team at a mid-size bank"), or set
+`BRIEFING_AUDIENCE` in `.env` to keep it private.
 
 Verify:
 
